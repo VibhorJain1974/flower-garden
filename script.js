@@ -4,7 +4,6 @@ let flowers = [];
 let autoMode = false;
 let time = 0;
 
-// Set up the canvas to fill the screen
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -12,17 +11,17 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// The Colour Palette: Added several shades of Blue as requested
+// VARIETY PALETTE: Dominant Blues + Pink & Gold
 const palette = [
-    '#FFD700', // Gold
-    '#FF69B4', // Hot Pink
-    '#00BFFF', // Deep Sky Blue
-    '#1E90FF', // Dodger Blue
-    '#4169E1', // Royal Blue
     '#00FFFF', // Cyan
-    '#7FFFD4', // Aquamarine
-    '#8A2BE2', // Blue Violet
-    '#F0F8FF'  // Alice Blue
+    '#1E90FF', // Dodger Blue
+    '#00BFFF', // Deep Sky Blue
+    '#4169E1', // Royal Blue
+    '#87CEEB', // Sky Blue
+    '#0000FF', // Pure Blue
+    '#FF69B4', // Hot Pink
+    '#FFD700', // Gold
+    '#FFFFFF'  // White Glow
 ];
 
 class Flower {
@@ -33,46 +32,48 @@ class Flower {
         this.growProgress = 0;
         this.bloomSize = 0;
         this.maxBloomSize = Math.random() * 30 + 25;
+        
+        // Pick a random color from the expanded palette
         this.color = palette[Math.floor(Math.random() * palette.length)];
+        
         this.swayOffset = Math.random() * 100;
-        this.swaySpeed = 0.015 + Math.random() * 0.02;
+        this.swaySpeed = 0.02 + Math.random() * 0.01;
         this.petals = Math.floor(Math.random() * 3) + 6;
     }
 
     draw() {
-        // Calculate swaying motion
-        const wind = Math.sin(time * this.swaySpeed + this.swayOffset) * 18;
+        // Natural wind sway math
+        const wind = Math.sin(time * this.swaySpeed + this.swayOffset) * 15;
 
-        // 1. Draw the Stem (Dark Green)
+        // Draw the curved stem
         ctx.beginPath();
         ctx.moveTo(this.x, canvas.height);
         ctx.bezierCurveTo(
-            this.x + 10 + wind, canvas.height - this.stemHeight / 2,
-            this.x - 10 + wind, canvas.height - this.stemHeight * 0.8,
+            this.x + 15 + wind, canvas.height - this.stemHeight / 2,
+            this.x - 15 + wind, canvas.height - this.stemHeight * 0.8,
             this.x + wind, this.y
         );
-        ctx.strokeStyle = '#2d4c1e';
+        ctx.strokeStyle = '#3d5a2b';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 2. Draw Tiny White Glow Leaves
+        // White glowing leaves
         if (this.growProgress > 0.4) {
-            ctx.fillStyle = "rgba(255,255,255,0.6)";
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
             ctx.beginPath();
-            ctx.ellipse(this.x + wind - 8, this.y + 40, 3, 6, Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(this.x + wind - 8, this.y + 45, 3, 6, Math.PI / 4, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.ellipse(this.x + wind + 8, this.y + 60, 3, 6, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(this.x + wind + 8, this.y + 65, 3, 6, -Math.PI / 4, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // 3. Draw the Flower Head
+        // Draw the glowing flower head
         if (this.growProgress >= 1) {
             ctx.save();
             ctx.translate(this.x + wind, this.y);
             
-            // Bloom Neon Glow
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 25;
             ctx.shadowColor = this.color;
             ctx.fillStyle = this.color;
 
@@ -83,37 +84,32 @@ class Flower {
                 ctx.fill();
             }
             
-            // Bright Center Spark
+            // White glowing center
             ctx.shadowBlur = 5;
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(0, 0, this.bloomSize/6, 0, Math.PI * 2);
             ctx.fill();
-            
             ctx.restore();
         }
     }
 
     update() {
         if (this.growProgress < 1) {
-            this.growProgress += 0.02; // Growing up
+            this.growProgress += 0.02;
         } else if (this.bloomSize < this.maxBloomSize) {
-            this.bloomSize += 0.5; // Petals opening
+            this.bloomSize += 0.5;
         }
     }
 }
 
-// Unified input handler for Mouse and Touch
 function handleInput(e) {
     if (e.type === 'touchstart') e.preventDefault();
-    
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
     if (clientX && clientY) {
         flowers.push(new Flower(clientX, clientY));
-        // Simple haptic for mobile
-        if (navigator.vibrate) navigator.vibrate(5);
+        if (navigator.vibrate) navigator.vibrate(10);
     }
 }
 
@@ -127,14 +123,13 @@ function animate() {
         f.draw();
     });
 
-    if (autoMode && Math.random() < 0.04) {
+    if (autoMode && Math.random() < 0.05) {
         flowers.push(new Flower(Math.random() * canvas.width, Math.random() * (canvas.height * 0.7)));
     }
-    
     requestAnimationFrame(animate);
 }
 
-// Event Listeners
+// Event Listeners for Interaction
 canvas.addEventListener('mousedown', handleInput);
 canvas.addEventListener('touchstart', handleInput, {passive: false});
 
@@ -144,5 +139,5 @@ document.getElementById('autoBtn').onclick = () => {
     document.getElementById('autoBtn').innerText = autoMode ? "✨ Auto: ON" : "✨ Auto Bloom";
 };
 
-// Start the loop
+// Start the animation
 animate();
